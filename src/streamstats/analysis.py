@@ -1,8 +1,3 @@
-
-
-
-
-
 def analysis_events(events):
     count_levels = {
     "DEBUG": 0,

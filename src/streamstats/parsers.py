@@ -19,12 +19,13 @@ def parse_events(row):
 
     levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
     try:
-        if isinstance(row["timestamp"], str):
-            timestamp = datetime.fromisoformat(row["timestamp"])
-        else:
+        if not isinstance(row["timestamp"], str):
             raise InvalidTimestampError("Некорректная дата события")
-    except ValueError:
-        raise InvalidTimestampError("Некорректная дата события")
+        timestamp = datetime.fromisoformat(row["timestamp"])
+        if timestamp.utcoffset() is None:
+            raise InvalidTimestampError("Временная метка должна содержать сдвиг по часам")
+    except ValueError as error:
+        raise InvalidTimestampError("Некорректная дата события") from error
 
     if not isinstance(row["level"], str) or row["level"] not in levels:
         raise InvalidEventError("Некорректный уровень")
@@ -32,7 +33,6 @@ def parse_events(row):
     if not isinstance(row["source"], str) or not row["source"].strip():
         raise InvalidEventError("Некорректный источник")
   
-
     if not isinstance(row["message"], str):
         raise InvalidEventError("Некорректное сообщение")
 
