@@ -1,0 +1,5 @@
+timestamp,level,source,message
+2026-10-15T09:00:00,INFO,auth,User logged in
+2026-10-15T09:05:00,ERROR,payments,Payment failed
+2026-10-15T09:10:00,CRITICAL,database,Connection lost
+2026-10-15T09:15:00,ERROR,payments,Payment failed again
