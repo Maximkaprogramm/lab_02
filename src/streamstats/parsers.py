@@ -8,22 +8,26 @@ from streamstats.errors import InvalidEventError, InvalidTimestampError
 from streamstats.models import LogEvent
 
 logger = logging.getLogger(__name__)
+
+
 def parse_events(row):
     if not isinstance(row, dict):
         raise InvalidEventError("Событие не объект типа dict")
 
-    
     correct_keys = ["timestamp", "level", "source", "message"]
-    if "timestamp" not in row or len(row["timestamp"]) == 0:
+
+    if "timestamp" not in row or not row["timestamp"]:
         raise InvalidTimestampError("Отсутствует дата события")
+    if not isinstance(row["timestamp"], str):
+        raise InvalidTimestampError("Некорректная дата") 
+
     for key in correct_keys:
         if key not in row:
             raise InvalidEventError(f"Некорректное поле {key}")
 
     levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
     try:
-        if not isinstance(row["timestamp"], str):
-            raise InvalidTimestampError("Некорректная дата события")
         timestamp = datetime.fromisoformat(row["timestamp"])
         if timestamp.utcoffset() is None:
             raise InvalidTimestampError("Временная метка должна содержать сдвиг по часам")
@@ -48,10 +52,19 @@ def parse_events(row):
 def read_csv(path, skip_invalid=False, skip_dict=None):
     if skip_dict is None:
         skip_dict = {"count": 0}
+
     with Path(path).open(encoding="utf-8", newline="") as file:
-        dict_reader = csv.DictReader(file)
+        dict_reader = csv.DictReader(file) #создание словаря
+
+        correct_keys = ["timestamp", "level", "source", "message"]
+
+        if dict_reader.fieldnames != correct_keys:
+            raise InvalidEventError(f"В файле {path}: заголовки CSV должны быть именно такие: "f"{', '.join(correct_keys)}")
+        
         for number_str, row in enumerate(dict_reader, start=2):
             try:
+                if None in row or any(value is None for value in row.values()):
+                    raise InvalidEventError("Количество значений в строке должно быть равно 4")
                 res = parse_events(row)
             except InvalidEventError as error:
                 if skip_invalid is True:
@@ -83,6 +96,7 @@ def read_csv(path, skip_invalid=False, skip_dict=None):
 def read_jsonl(path, skip_invalid=False, skip_dict=None):
     if skip_dict is None:
         skip_dict = {"count": 0}
+        
     with Path(path).open(encoding="utf-8", newline="") as file:
         for number_str, string in enumerate(file, start=1):
             try:

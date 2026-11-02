@@ -10,6 +10,7 @@ def analysis_events(events):
     early = late = None
     count_errors_sources = {}
     count_sources = {}
+
     for event in events:
         total_events += 1
         count_levels[event.level] += 1
@@ -20,6 +21,7 @@ def analysis_events(events):
             late = event.timestamp
         if event.level in ["ERROR", "CRITICAL"]:
             count_errors_sources[event.source] = count_errors_sources.get(event.source, 0) + 1
+
     five_errors = sorted(count_errors_sources.items(), key=lambda el: el[1], reverse=True)[:5]
     result = {
             "total_events": total_events,
@@ -29,4 +31,5 @@ def analysis_events(events):
             "early": early,
             "late": late
             }
+            
     return result
