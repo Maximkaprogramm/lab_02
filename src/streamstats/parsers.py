@@ -12,7 +12,10 @@ def parse_events(row):
     if not isinstance(row, dict):
         raise InvalidEventError("Событие не объект типа dict")
 
+    
     correct_keys = ["timestamp", "level", "source", "message"]
+    if "timestamp" not in row or len(row["timestamp"]) == 0:
+        raise InvalidTimestampError("Отсутствует дата события")
     for key in correct_keys:
         if key not in row:
             raise InvalidEventError(f"Некорректное поле {key}")
